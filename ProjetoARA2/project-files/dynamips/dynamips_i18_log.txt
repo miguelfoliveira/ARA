@@ -1,0 +1,54 @@
+Dec 22 01:05:24.583 HYPERVISOR: Release 0.2.14-x86/Windows (tag 2014092320)
+Dec 22 01:05:24.586 HYPERVISOR: Started on IP = 127.0.0.1, TCP port = 7439.
+Dec 22 01:05:25.022 HYPERVISOR: exec_cmd: hypervisor version 
+Dec 22 01:05:25.023 HYPERVISOR: exec_cmd: hypervisor uuid 
+Dec 22 01:05:25.025 HYPERVISOR: exec_cmd: hypervisor working_dir C:\Users\Utilizador\Desktop\Universidade\4_ano\1_semestre\ARA\Projeto\Projeto2\project-files\dynamips 
+Dec 22 01:05:25.025 GENERAL: working_dir=C:\Users\Utilizador\Desktop\Universidade\4_ano\1_semestre\ARA\Projeto\Projeto2\project-files\dynamips
+Dec 22 01:05:25.027 HYPERVISOR: exec_cmd: vm create R1 4 c7200 
+Dec 22 01:05:25.033 VM: VM R1 created.
+Dec 22 01:05:25.034 HYPERVISOR: exec_cmd: vm set_con_tcp_port R1 2003 
+Dec 22 01:05:25.036 HYPERVISOR: exec_cmd: c7200 get_mac_addr R1 
+Dec 22 01:05:25.037 HYPERVISOR: exec_cmd: vm get_status R1 
+Dec 22 01:05:25.038 HYPERVISOR: exec_cmd: vm slot_add_binding R1 0 0 C7200-IO-FE 
+Dec 22 01:05:25.040 HYPERVISOR: exec_cmd: vm get_status R1 
+Dec 22 01:05:25.040 HYPERVISOR: exec_cmd: vm set_idle_pc R1 0x6318687c 
+Dec 22 01:05:25.042 HYPERVISOR: exec_cmd: vm set_ram R1 512 
+Dec 22 01:05:25.043 HYPERVISOR: exec_cmd: vm get_status R1 
+Dec 22 01:05:25.044 HYPERVISOR: exec_cmd: vm slot_remove_binding R1 0 0 
+Dec 22 01:05:25.046 HYPERVISOR: exec_cmd: vm get_status R1 
+Dec 22 01:05:25.046 HYPERVISOR: exec_cmd: vm slot_add_binding R1 0 0 C7200-IO-2FE 
+Dec 22 01:05:25.048 HYPERVISOR: exec_cmd: vm get_status R1 
+Dec 22 01:05:25.049 HYPERVISOR: exec_cmd: vm slot_add_binding R1 1 0 PA-2FE-TX 
+Dec 22 01:05:25.051 HYPERVISOR: exec_cmd: vm set_disk0 R1 0 
+Dec 22 01:05:25.052 HYPERVISOR: exec_cmd: vm set_exec_area R1 64 
+Dec 22 01:05:25.054 HYPERVISOR: exec_cmd: vm set_ios R1 C:\Users\Utilizador\Documents\GNS_Images\IOS\c7200-advipservicesk9-mz.152-4.S5.image 
+Dec 22 01:05:25.056 HYPERVISOR: exec_cmd: vm set_nvram R1 512 
+Dec 22 01:05:25.062 HYPERVISOR: exec_cmd: vm set_config R1 configs/i4_startup-config.cfg 
+Dec 22 01:05:25.064 HYPERVISOR: exec_cmd: vm set_ghost_status R1 2 
+Dec 22 01:05:25.065 HYPERVISOR: exec_cmd: vm set_ghost_file R1 c7200-advipservicesk9-mz.152-4.S5.image-512.ghost 
+Dec 22 01:05:34.349 HYPERVISOR: exec_cmd: vm rename R1 Porto 
+Dec 22 01:05:39.706 HYPERVISOR: exec_cmd: nio create_udp udp-caf94d60-41a4-4d5d-a3ec-5cca9453ccd3 10025 127.0.0.1 10024 
+Dec 22 01:05:39.709 HYPERVISOR: exec_cmd: vm slot_add_nio_binding Porto 0 0 udp-caf94d60-41a4-4d5d-a3ec-5cca9453ccd3 
+Dec 22 01:05:39.711 HYPERVISOR: exec_cmd: vm get_status Porto 
+Dec 22 01:05:45.273 HYPERVISOR: exec_cmd: nio create_udp udp-0cfb15ad-ce1d-4487-9a52-5cf8e4e56c7d 10027 127.0.0.1 10026 
+Dec 22 01:05:45.276 HYPERVISOR: exec_cmd: vm slot_add_nio_binding Porto 1 0 udp-0cfb15ad-ce1d-4487-9a52-5cf8e4e56c7d 
+Dec 22 01:05:45.278 HYPERVISOR: exec_cmd: vm get_status Porto 
+Dec 22 01:05:50.687 HYPERVISOR: exec_cmd: nio create_udp udp-cee8682f-8558-4856-bfa3-d8273436fe43 10028 127.0.0.1 10029 
+Dec 22 01:05:50.690 HYPERVISOR: exec_cmd: vm slot_add_nio_binding Porto 0 1 udp-cee8682f-8558-4856-bfa3-d8273436fe43 
+Dec 22 01:05:50.692 HYPERVISOR: exec_cmd: vm get_status Porto 
+Dec 22 01:06:28.099 HYPERVISOR: exec_cmd: vm get_status Porto 
+Dec 22 01:06:28.169 HYPERVISOR: exec_cmd: vm start Porto 
+Dec 22 01:06:51.743 HYPERVISOR: exec_cmd: vm extract_config Porto 
+Dec 22 01:08:32.889 HYPERVISOR: exec_cmd: vm extract_config Porto 
+Dec 22 01:15:37.662 HYPERVISOR: exec_cmd: vm extract_config Porto 
+Dec 22 01:15:47.950 HYPERVISOR: exec_cmd: vm extract_config Porto 
+Dec 22 01:15:48.966 HYPERVISOR: exec_cmd: vm get_status Porto 
+Dec 22 01:15:48.975 HYPERVISOR: exec_cmd: vm stop Porto 
+Dec 22 01:15:49.382 VM: VM Porto shutdown.
+Dec 22 01:15:53.110 HYPERVISOR: exec_cmd: vm get_status Porto 
+Dec 22 01:15:53.125 HYPERVISOR: exec_cmd: vm extract_config Porto 
+Dec 22 01:15:53.150 HYPERVISOR: exec_cmd: vm delete Porto 
+Dec 22 01:15:53.150 VM: VM Porto destroyed.
+Dec 22 01:15:53.202 HYPERVISOR: exec_cmd: hypervisor stop 
+Dec 22 01:15:53.639 HYPERVISOR: Stopped.
+Dec 22 01:15:53.639 GENERAL: reset done.

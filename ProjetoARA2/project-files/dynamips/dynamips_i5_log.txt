@@ -1,0 +1,37 @@
+Jan 04 14:32:31.471 HYPERVISOR: Release 0.2.14-x86/Windows (tag 2014092320)
+Jan 04 14:32:31.471 HYPERVISOR: Started on IP = 127.0.0.1, TCP port = 6670.
+Jan 04 14:32:32.393 HYPERVISOR: exec_cmd: hypervisor version 
+Jan 04 14:32:32.471 HYPERVISOR: exec_cmd: hypervisor working_dir C:\Users\ASUS\Desktop\Tigas\ProjetoARA2\project-files\dynamips 
+Jan 04 14:32:32.471 GENERAL: working_dir=C:\Users\ASUS\Desktop\Tigas\ProjetoARA2\project-files\dynamips
+Jan 04 14:32:32.611 HYPERVISOR: exec_cmd: vm create InternetCore 7 c7200 
+Jan 04 14:32:32.611 VM: VM InternetCore created.
+Jan 04 14:32:32.674 HYPERVISOR: exec_cmd: vm set_con_tcp_port InternetCore 5006 
+Jan 04 14:32:32.768 HYPERVISOR: exec_cmd: c7200 get_mac_addr InternetCore 
+Jan 04 14:32:32.830 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:32:32.908 HYPERVISOR: exec_cmd: vm slot_add_binding InternetCore 0 0 C7200-IO-FE 
+Jan 04 14:32:32.986 HYPERVISOR: exec_cmd: vm set_ram InternetCore 512 
+Jan 04 14:32:33.065 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:32:33.158 HYPERVISOR: exec_cmd: vm slot_remove_binding InternetCore 0 0 
+Jan 04 14:32:33.252 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:32:33.361 HYPERVISOR: exec_cmd: vm slot_add_binding InternetCore 0 0 C7200-IO-2FE 
+Jan 04 14:32:33.486 HYPERVISOR: exec_cmd: vm set_exec_area InternetCore 64 
+Jan 04 14:32:33.580 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:32:33.690 HYPERVISOR: exec_cmd: vm slot_add_binding InternetCore 1 0 PA-2FE-TX 
+Jan 04 14:32:33.815 HYPERVISOR: exec_cmd: vm set_ios InternetCore C:/Users/ASUS/GNS3/images/IOS/c7200-advipservicesk9-mz.152-4.S5.image 
+Jan 04 14:32:33.893 HYPERVISOR: exec_cmd: vm set_disk0 InternetCore 0 
+Jan 04 14:32:33.971 HYPERVISOR: exec_cmd: vm set_nvram InternetCore 512 
+Jan 04 14:32:34.033 HYPERVISOR: exec_cmd: c7200 set_mac_addr InternetCore ca07.2634.0000 
+Jan 04 14:32:34.111 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:32:34.190 HYPERVISOR: exec_cmd: vm set_idle_pc InternetCore 0x63184dd4 
+Jan 04 14:32:34.268 HYPERVISOR: exec_cmd: vm set_config InternetCore configs/i7_startup-config.cfg 
+Jan 04 14:32:42.440 HYPERVISOR: exec_cmd: nio create_udp udp-abd07b42-1fed-496d-87f5-5823d5439851 10007 127.0.0.1 10006 
+Jan 04 14:32:42.502 HYPERVISOR: exec_cmd: vm slot_add_nio_binding InternetCore 0 0 udp-abd07b42-1fed-496d-87f5-5823d5439851 
+Jan 04 14:32:42.549 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:53:26.523 HYPERVISOR: exec_cmd: vm extract_config InternetCore 
+Jan 04 14:53:29.242 HYPERVISOR: exec_cmd: vm get_status InternetCore 
+Jan 04 14:53:29.320 HYPERVISOR: exec_cmd: vm extract_config InternetCore 
+Jan 04 14:53:29.445 HYPERVISOR: exec_cmd: vm delete InternetCore 
+Jan 04 14:53:29.445 VM: VM InternetCore destroyed.
+Jan 04 14:53:29.554 HYPERVISOR: exec_cmd: hypervisor stop 
+Jan 04 14:53:29.585 HYPERVISOR: Stopped.
+Jan 04 14:53:29.585 GENERAL: reset done.

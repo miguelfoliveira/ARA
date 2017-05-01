@@ -1,0 +1,19 @@
+Jan 04 14:32:30.518 HYPERVISOR: Release 0.2.14-x86/Windows (tag 2014092320)
+Jan 04 14:32:30.533 HYPERVISOR: Started on IP = 127.0.0.1, TCP port = 6651.
+Jan 04 14:32:30.971 HYPERVISOR: exec_cmd: hypervisor version 
+Jan 04 14:32:31.111 HYPERVISOR: exec_cmd: hypervisor working_dir C:\Users\ASUS\Desktop\Tigas\ProjetoARA2\project-files\dynamips 
+Jan 04 14:32:31.111 GENERAL: working_dir=C:\Users\ASUS\Desktop\Tigas\ProjetoARA2\project-files\dynamips
+Jan 04 14:32:31.190 HYPERVISOR: exec_cmd: ethsw create SW1 
+Jan 04 14:32:39.455 HYPERVISOR: exec_cmd: nio create_gen_eth generic_ethernet-aa260d86-38f5-4122-ac87-2177bbff63f9 \Device\NPF_{267B802B-BC27-445C-BAAA-44462B88A3E1} 
+Jan 04 14:32:39.799 HYPERVISOR: exec_cmd: ethsw add_nio SW1 generic_ethernet-aa260d86-38f5-4122-ac87-2177bbff63f9 
+Jan 04 14:32:39.877 HYPERVISOR: exec_cmd: ethsw set_access_port SW1 generic_ethernet-aa260d86-38f5-4122-ac87-2177bbff63f9 1 
+Jan 04 14:32:42.783 HYPERVISOR: exec_cmd: nio create_udp udp-47876f84-bbec-4f09-aae8-fd8e9394d82f 10008 127.0.0.1 10009 
+Jan 04 14:32:42.893 HYPERVISOR: exec_cmd: ethsw add_nio SW1 udp-47876f84-bbec-4f09-aae8-fd8e9394d82f 
+Jan 04 14:32:43.033 HYPERVISOR: exec_cmd: ethsw set_access_port SW1 udp-47876f84-bbec-4f09-aae8-fd8e9394d82f 1 
+Jan 04 14:32:43.174 HYPERVISOR: exec_cmd: nio create_udp udp-2ab53bb2-6e58-4c7f-bb69-45a3fa994a01 10013 127.0.0.1 10012 
+Jan 04 14:32:43.299 HYPERVISOR: exec_cmd: ethsw add_nio SW1 udp-2ab53bb2-6e58-4c7f-bb69-45a3fa994a01 
+Jan 04 14:32:43.424 HYPERVISOR: exec_cmd: ethsw set_access_port SW1 udp-2ab53bb2-6e58-4c7f-bb69-45a3fa994a01 1 
+Jan 04 14:53:28.726 HYPERVISOR: exec_cmd: ethsw delete SW1 
+Jan 04 14:53:28.820 HYPERVISOR: exec_cmd: hypervisor stop 
+Jan 04 14:53:29.070 HYPERVISOR: Stopped.
+Jan 04 14:53:29.070 GENERAL: reset done.
