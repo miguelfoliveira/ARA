@@ -1,0 +1,44 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+
+int f1/0
+ip add 210.0.1.1 255.255.255.0
+no shut
+ipv6 enable
+ipv6 add 2100:210::1/48
+
+! BGP Peering links
+
+int f0/0
+ip add 4.20.20.13 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:420:4::1/64
+
+int f0/1
+ip add 4.20.20.10 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:420:3::2/64
+
+! BGP CONFIGS
+router bgp 30000
+address-family ipv4 unicast
+neighbor 4.20.20.9 remote-as 20000 !eBGP Neighboring with London
+neighbor 4.20.20.14 remote-as 9000 !eBGP Neighboring with Lisboa
+
+network 210.0.1.0 mask 255.255.255.0
+
+address-family ipv6 unicast
+
+neighbor 2001:420:3::1 remote-as 20000
+neighbor 2001:420:3::1 activate
+
+neighbor 2001:420:4::2 remote-as 9000
+neighbor 2001:420:4::2 activate
+
+network 2100:210::/48
+
+end
+write

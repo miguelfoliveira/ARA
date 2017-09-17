@@ -1,0 +1,77 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+mpls traffic-eng tunnels
+ip cef
+
+int loopback0
+ip add 10.0.16.7 255.255.255.255
+ip ospf 1 area 0
+no shut
+
+int f0/0
+ip add 192.172.1.18 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:200:5000::2/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+mpls traffic-eng tunnels
+ip rsvp bandwidth 2048 2048
+!ip rsvp bandwidth 4096 4096
+
+int f0/1
+ip add 130.1.1.129 255.255.255.128
+no shut
+ipv6 enable
+ipv6 add 2001:130::129/48
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+
+ip route 0.0.0.0 0.0.0.0 192.172.1.17
+end
+
+! MPLS Tunnel Aveiro
+conf t
+interface tunnel2
+ip unnumbered Loopback0
+tunnel destination 10.0.16.6
+tunnel mode mpls traffic-eng
+!tunnel mpls traffic-eng autoroute announce
+tunnel mpls traffic-eng bandwidth 2048 
+tunnel mpls traffic-eng path-option 1 dynamic
+end
+
+! MPLS Tunnel EmpB1
+conf t
+interface tunnel2
+ip unnumbered Loopback0
+tunnel destination 10.0.16.6
+tunnel mode mpls traffic-eng
+!tunnel mpls traffic-eng autoroute announce
+tunnel mpls traffic-eng bandwidth 2048 
+tunnel mpls traffic-eng path-option 1 dynamic
+end
+
+! Associar HTTP e HTTPS ao Tunel
+conf t
+access-list 102 permit tcp 130.1.1.128 0.0.0.127 130.1.1.0 0.0.0.127 eq 80
+access-list 102 permit tcp 130.1.1.128 0.0.0.127 130.1.1.0 0.0.0.127 eq 443
+
+route-map HttpHttps permit 10
+match ip address 102
+set int tunnel 2
+end
+conf t
+int f0/1
+ip policy route-map HttpHttps
+end
+
+! OSPF MPLS
+conf t
+router ospf 1
+mpls traffic-eng area 0
+mpls traffic-eng router-id Loopback 0
+end
+
+write

@@ -1,0 +1,191 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+
+int loopback0
+ip add 10.0.16.1 255.255.255.255
+ip ospf 1 area 0
+ipv6 enable
+ipv6 address 2001:200:0:FFFE::1/128
+ipv6 ospf 1 area 0
+no shut
+
+int f0/0
+ip add 4.20.20.2 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:420:1::2/64
+
+int f0/1
+ip add 10.0.0.1 255.255.240.0
+no shut
+ipv6 enable
+ipv6 add 2001:200::1/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+
+int f1/0
+ip add 192.172.1.1 255.255.255.252
+no shut
+ipv6 enable
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+ipv6 add 2001:200:1000::1/50
+end
+
+! Esta e q ta bem
+! deny private networks e default routes
+conf t
+ip access-list standard fOut-priv-default
+10 deny 10.0.0.0 0.0.255.255
+16 deny 0.0.0.0 0.0.0.0
+100 permit any
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.1 distribute-list fOut-priv-default out
+end
+! end
+
+
+! Havia sobreposição
+
+! Deny private networks
+conf t
+!no ip prefix-list fOut-priv-default seq 12 deny 10.0.0.0/20 le 32
+!no ip prefix-list fOut-priv-default seq 100 permit 0.0.0.0/0 le 32
+!router bgp 9000
+!address-family ipv4 unicast
+!no neighbor 4.20.20.1 prefix-list fOut-priv-default out
+!end
+! End deny private networks
+
+! Deny Sintra
+conf t
+!ip prefix-list sintra-route-deny-ipv4 seq 30 deny 210.0.1.0/24
+ip prefix-list sintra-route-deny-ipv4 seq 5 deny 210.0.1.0/24
+ip prefix-list sintra-route-deny-ipv4 seq 100 permit 0.0.0.0/0 le 32
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.1 prefix-list sintra-route-deny-ipv4 in
+end
+
+! BGP CONFIGS
+conf t
+router bgp 9000
+bgp default local-preference 200
+address-family ipv4 unicast
+redistribute ospf 1 
+
+neighbor 4.20.20.1 remote-as 20000 !eBGP Neighboring with London
+neighbor 192.172.1.2 remote-as 65300 !eBGP Neighboring with EmpC
+
+! AS Privada
+conf t
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.1 remove-private-as
+! End
+
+neighbor 10.0.16.2 remote-as 9000 ! Aveiro
+neighbor 10.0.16.2 next-hop-self
+neighbor 10.0.16.2 update-source Loopback 0
+
+neighbor 10.0.16.3 remote-as 9000 ! Lisboa
+neighbor 10.0.16.3 next-hop-self
+neighbor 10.0.16.3 update-source Loopback 0
+!neighbor 10.0.16.3 route-map routes-Net-out out
+
+neighbor 10.0.16.4 remote-as 9000 ! Oeiras
+neighbor 10.0.16.4 next-hop-self
+neighbor 10.0.16.4 update-source Loopback 0
+!neighbor 10.0.16.4 route-map routes-Net-out out
+
+network 10.0.0.0 mask 255.255.240.0 ! Ethernet core
+aggregate-address 120.1.1.0 255.255.255.0 summary-only
+aggregate-address 130.1.1.0 255.255.255.0 summary-only
+aggregate-address 192.172.1.0 255.255.255.0 summary-only
+
+------------------------------------------------------------------------
+
+!! IPv6
+
+! Deny Sintra IPv6
+conf t
+ipv6 prefix-list sintra-route-deny-ipv6 seq 5 deny 2100:210::/48
+ipv6 prefix-list sintra-route-deny-ipv6 seq 100 permit ::/0 le 128
+
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:1::1 prefix-list sintra-route-deny-ipv6 in
+end
+
+! Deny Default routes
+conf t
+ipv6 prefix-list ACL-default-routes-ipv6 seq 16 deny ::/0 
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:1::1 prefix-list ACL-default-routes-ipv6 out
+end
+
+! AS Privada IPV6
+conf t
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:1::1 remove-private-as
+! End
+
+conf t
+router bgp 9000
+address-family ipv6 unicast
+redistribute ospf 1
+
+neighbor 2001:420:1::1 remote-as 20000
+neighbor 2001:420:1::1 activate
+! EmpC
+neighbor 2001:200:1000::2 remote-as 65300
+
+!Aveiro
+neighbor 2001:200:0:FFFE::2 remote-as 9000 
+neighbor 2001:200:0:FFFE::2 next-hop-self
+neighbor  2001:200:0:FFFE::2 update-source Loopback 0
+
+!Lisboa
+!neighbor 2001:200::3 remote-as 9000
+!neighbor 2001:200::3 activate
+!neighbor 2001:200::3 next-hop-self
+
+neighbor 2001:200:0:FFFE::3 remote-as 9000 
+neighbor 2001:200:0:FFFE::3 next-hop-self
+neighbor  2001:200:0:FFFE::3 update-source Loopback 0
+
+!Oeiras
+!neighbor 2001:200:2000::2 remote-as 9000
+!neighbor 2001:200:2000::2 activate
+!neighbor 2001:200:2000::2 next-hop-self
+
+neighbor 2001:200:0:FFFE::4 remote-as 9000 
+neighbor 2001:200:0:FFFE::4 next-hop-self
+neighbor 2001:200:0:FFFE::4 update-source Loopback 0
+
+network 2001:200::/50
+!aggregate-address 2001:120::/48 summary-only
+!aggregate-address 2001:130::/48 summary-only
+end
+
+! Route Maps - Non Transit
+conf t
+ip as-path access-list 1 permit ^$ 
+ip as-path access-list 1 permit _65300_
+route-map non-transit 
+match as-path 1 
+
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.1 route-map non-transit out 
+
+address-family ipv6 unicast
+neighbor 2001:420:1::1 route-map non-transit out
+
+end
+
+write

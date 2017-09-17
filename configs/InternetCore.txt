@@ -1,0 +1,18 @@
+
+conf t
+
+ipv6 unicast-routing !ipv6 routing enabled
+
+int f0/0
+ip add 220.120.1.1 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2002:120::1/48
+
+! rota estatica para dentro
+ip route 10.0.0.0 255.255.0.0 220.120.1.2 ! ethernet core
+! ip route 80.172.100.128 255.255.255.128 213.30.5.2 ! net A
+! ip route 81.84.100.0 255.255.255.0 213.30.5.2 ! net B
+
+end
+write

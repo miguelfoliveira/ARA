@@ -1,0 +1,23 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+
+int f0/0
+ip add 192.172.1.10 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:200:3000::2/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+
+int f0/1
+ip add 120.1.1.1 255.255.255.128
+no shut
+ipv6 add 2001:120::1/48
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+
+ip route 0.0.0.0 0.0.0.0 192.172.1.9
+
+end 
+write

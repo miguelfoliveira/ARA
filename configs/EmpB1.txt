@@ -1,0 +1,123 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+mpls traffic-eng tunnels
+ip cef
+
+int loopback0
+ip add 10.0.16.6 255.255.255.255
+ip ospf 1 area 0
+no shut
+
+int f0/0
+ip add 192.172.1.14 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:200:4000::2/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+mpls traffic-eng tunnels
+!ip rsvp bandwidth 2048 2048
+ip rsvp bandwidth 4096 4096
+
+int f0/1
+ip add 130.1.1.1 255.255.255.128
+no shut
+ipv6 add 2001:130::1/48
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+
+ip route 0.0.0.0 0.0.0.0 192.172.1.13
+end
+
+! IPSec Lisboa
+conf t
+!access-list 101 permit tcp any any eq 5060
+!access-list 101 permit tcp any any eq 5061
+!route-map Voip permit 20
+!match ip address 101
+!set interface Tunnel1
+!exit
+!conf t
+!int f0/1
+!ip policy route-map Voip
+!exit
+!end
+
+
+! MPLS Tunnel Lisboa
+conf t
+interface tunnel1
+ip unnumbered Loopback0
+tunnel destination 10.0.16.3
+tunnel mode mpls traffic-eng
+!tunnel mpls traffic-eng autoroute announce
+tunnel mpls traffic-eng bandwidth 2048 
+tunnel mpls traffic-eng path-option 1 dynamic
+end
+
+
+! MPLS Tunnel Oeiras Branch ( EmpB2)
+conf t
+interface tunnel2
+ip unnumbered Loopback0
+tunnel destination 10.0.16.7
+tunnel mode mpls traffic-eng
+!tunnel mpls traffic-eng autoroute announce
+tunnel mpls traffic-eng bandwidth 2048 
+tunnel mpls traffic-eng path-option 1 dynamic
+end
+
+!Associar VoIP ao tunel MPLS
+conf t
+access-list 101 permit ip 130.1.1.0 0.0.0.63 192.172.1.128 0.0.0.127 
+route-map MplsTraffic permit 20
+match ip address 101
+set interface Tunnel1
+end
+conf t
+int f0/1
+ip policy route-map MplsTraffic
+end
+
+
+
+! Associar HTTP e HTTPS ao Tunel
+conf t
+access-list 102 permit tcp 130.1.1.0 0.0.0.127 130.1.1.128 0.0.0.127 eq 80
+access-list 102 permit tcp 130.1.1.0 0.0.0.127 130.1.1.128 0.0.0.127 eq 443
+
+route-map MplsTraffic permit 10
+match ip address 102
+set int tunnel 2
+end
+conf t
+int f0/1
+ip policy route-map MplsTraffic
+end
+
+
+!route-map RM-TUNNEL-TRAFFIC permit 10
+!match ip address 102
+!set int tunnel 2
+
+!route-map RM-TUNNEL-TRAFFIC permit 20
+!match ip address 101
+!set int tunnel 1
+!exit
+!int f0/1
+!ip policy route-map RM-TUNNEL-TRAFFIC
+!end
+! END RICARDO
+
+! OSPF MPLS
+conf t
+router ospf 1
+mpls traffic-eng area 0
+mpls traffic-eng router-id Loopback 0
+end
+
+write
+
+
+! ping 130.1.1.130 -P 6 -p 80

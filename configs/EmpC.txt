@@ -1,0 +1,50 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+
+!int loopback0
+!ip add 10.0.16.5 255.255.255.255
+!ip ospf 1 area 0
+!no shut
+
+int f0/0
+ip add 192.172.1.2 255.255.255.252
+no shut
+!ip ospf 1 area 0
+ipv6 enable
+ipv6 add 2001:200:1000::2/50
+!ipv6 ospf 1 area 0
+
+int f0/1
+ip add 140.1.1.1 255.255.255.0
+no shut
+!ip ospf 1 area 0
+ipv6 enable
+ipv6 add 2001:140::1/48
+!ipv6 ospf 1 area 0
+end
+
+! BGP CONFIGS
+conf t
+router bgp 65300
+address-family ipv4 unicast
+!redistribute ospf 1
+!neighbor 10.0.16.1 remote-as 9000
+!neighbor 10.0.16.1 next-hop-self
+!neighbor 10.0.16.1 update-source Loopback 0
+neighbor 192.172.1.1 remote-as 9000
+
+!network 192.172.1.0 mask 255.255.255.252
+network 140.1.1.0 mask 255.255.255.0
+
+conf t
+router bgp 65300
+address-family ipv6 unicast
+neighbor 2001:200:1000::1 remote-as 9000
+
+network 2001:200:1000::/50
+network 2001:140::/48
+
+
+end
+wr

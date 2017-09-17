@@ -1,0 +1,358 @@
+
+conf t
+ipv6 unicast-routing
+mpls traffic-eng tunnels
+ip cef
+mpls ip
+
+int loopback0
+ip add 10.0.16.3 255.255.255.255
+ip ospf 1 area 0
+ipv6 enable
+ipv6 address 2001:200:0:FFFE::3/128
+ipv6 ospf 1 area 0
+no shut
+
+int f0/0
+ip add 4.20.20.14 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:420:4::2/64
+
+int f0/1
+ip add 4.20.20.6 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:420:2::2/64
+
+int f1/0
+ip add 10.0.0.3 255.255.240.0 
+no shut
+ipv6 enable
+ipv6 add 2001:200::3/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+mpls traffic-eng tunnels
+ip rsvp bandwidth 2048 2048
+!ip rsvp bandwidth 4096 4096
+mpls ip
+
+int f1/1
+ip add 192.172.1.5 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:200:2000::1/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+mpls traffic-eng tunnels
+ip rsvp bandwidth 4096 4096
+mpls ip
+
+int f2/1
+ip add 192.172.1.129 255.255.255.128
+no shut
+ipv6 enable
+ipv6 add 2001:200:129::1/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+ip policy route-map VoIP
+end
+
+!Associar VoIP ao tunel MPLS
+conf t
+access-list 101 permit ip 192.172.1.128 0.0.0.127 130.1.1.0 0.0.0.63
+route-map VoIP permit 30
+match ip address 101
+set interface Tunnel1
+end
+conf t
+int f2/1
+ip policy route-map VoIP
+end
+
+! MPLS Tunnel Aveiro Branch
+conf t
+interface tunnel1
+ip unnumbered Loopback0
+tunnel destination 10.0.16.6
+tunnel mode mpls traffic-eng
+!tunnel mpls traffic-eng autoroute announce
+tunnel mpls traffic-eng bandwidth 2048 
+tunnel mpls traffic-eng path-option 1 dynamic
+end
+
+! OSPF MPLS
+router ospf 1
+mpls traffic-eng area 0
+mpls traffic-eng router-id Loopback 0
+end
+
+! Network L2 ipv4
+conf t
+ip prefix-list prefix-routes-L2 permit 200.200.1.0/24
+ip prefix-list prefix-routes-L2 seq 10 permit 210.0.1.0/24
+
+route-map routes-L2-out permit 20
+match ip address prefix-list prefix-routes-L2
+set local-preference 300
+
+route-map rotasL2-out permit 20
+match ip address prefix-list prefix-routes-L2
+set local-preference 100
+! End Network L2
+
+!Outside traffic preference
+conf t
+ip access-list standard ACL-PERMIT-REST
+10 deny 210.0.1.0 0.0.0.255
+100 permit any
+exit
+
+ip prefix-list PL-L2-TRAFFIC seq 10 permit 200.200.1.0/24
+
+route-map RM-OUTSIDE-ROUTES permit 10
+match ip address prefix-list PL-L2-TRAFFIC
+set local-preference 300
+
+route-map RM-OUTSIDE-ROUTES permit 20
+match ip address ACL-PERMIT-REST
+set local-preference 100
+exit
+
+! Neighbors out ipv4
+ip prefix-list prefAll seq 20 permit 0.0.0.0/0 le 32
+
+! Neighbors out ipv6
+ipv6 prefix-list prefAll-ipv6 seq 20 permit ::/0 le 128
+
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.5 route-map RM-OUTSIDE-ROUTES in
+end
+
+! Neighbors out ipv4
+conf t
+route-map routesOut permit 20
+match ip add prefix-list prefAll
+set local-preference 100
+router bgp 9000
+address-family ipv4 unicast
+neighbor 10.0.16.1 route-map routesOut out
+neighbor 10.0.16.2 route-map routesOut out
+end
+
+! Neighbors out ipv6
+conf t
+route-map routesOut-ipv6 permit 20
+match ipv6 add prefix-list prefAll-ipv6
+set local-preference 100
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:200:0:FFFE::1 route-map routesOut-ipv6 out
+neighbor 2001:200:0:FFFE::2 route-map routesOut-ipv6 out
+end
+
+! Deny private networks
+!conf t
+!no ip prefix-list fOut-priv-default seq 12 deny 10.0.0.0/20 le 32
+!no ip prefix-list fOut-priv-default seq 100 permit 0.0.0.0/0 le 32
+!router bgp 9000
+!address-family ipv4 unicast
+!no neighbor 4.20.20.5 prefix-list fOut-priv-default out
+!no neighbor 4.20.20.13 prefix-list fOut-priv-default out
+!end
+! End deny private networks
+
+! ESTA TA BEM
+! deny private networks e default routes
+conf t
+ip access-list standard fOut-priv-default
+10 deny 10.0.0.0 0.0.255.255
+16 deny 0.0.0.0 0.0.0.0
+100 permit any
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.5 distribute-list fOut-priv-default out
+neighbor 4.20.20.13 distribute-list fOut-priv-default out
+end
+! end
+! ESTA TA BEM
+
+! Deny Sintra
+conf t
+! deny from sintra the route
+ip prefix-list sintra-route-deny-ipv4 seq 10 deny 210.0.1.0/24
+ip prefix-list sintra-route-deny-ipv4 seq 100 permit 0.0.0.0/0 le 32
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.5 prefix-list sintra-route-deny-ipv4 in
+end
+! End Deny Sintra
+
+router bgp 9000
+address-family ipv4 unicast
+neighbor 10.0.16.1 route-map rotasL2-out out
+no neighbor 10.0.16.2 route-map rotasL2-out out
+neighbor 4.20.20.5 route-map routes-L2-out in
+!no neighbor 4.20.20.13 route-map routes-L2-out in
+
+end
+! End Network
+
+! BGP CONFIGS
+conf t
+router bgp 9000
+address-family ipv4 unicast
+redistribute ospf 1 
+
+neighbor 4.20.20.13 remote-as 30000 !eBGP Neighboring with Sintra
+
+neighbor 4.20.20.5 remote-as 20000 !eBGP Neighboring with London
+
+! AS Privada
+conf t
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.5 remove-private-as
+neighbor 4.20.20.13 remove-private-as
+
+! End AS Privada
+
+neighbor 10.0.16.1 remote-as 9000
+neighbor 10.0.16.1 next-hop-self
+neighbor 10.0.16.1 update-source Loopback 0
+
+neighbor 10.0.16.2 remote-as 9000
+neighbor 10.0.16.2 next-hop-self
+neighbor 10.0.16.2 update-source Loopback 0
+
+neighbor 10.0.16.4 remote-as 9000
+neighbor 10.0.16.4 next-hop-self
+neighbor 10.0.16.4 update-source Loopback 0
+!neighbor 10.0.16.4 route-map routes-L2-out out
+
+! anunciar depois netX1 !netX1
+network 192.172.1.4 mask 255.255.255.252
+network 10.0.0.0 mask 255.255.240.0 ! do ethernet core
+aggregate-address 120.1.1.0 255.255.255.0 summary-only
+aggregate-address 130.1.1.0 255.255.255.0 summary-only
+aggregate-address 192.172.1.0 255.255.255.0 summary-only
+
+
+!--------------------------IPV6---------------------
+conf t
+router bgp 9000
+address-family ipv6 unicast
+redistribute ospf 1
+
+neighbor 2001:420:4::1 remote-as 30000
+neighbor 2001:420:4::1 activate
+
+neighbor 2001:420:2::1 remote-as 20000
+neighbor 2001:420:2::1 activate
+
+neighbor 2001:200:0:FFFE::1 remote-as 9000 
+neighbor 2001:200:0:FFFE::1 next-hop-self
+neighbor 2001:200:0:FFFE::1 update-source Loopback 0
+
+neighbor 2001:200:0:FFFE::2 remote-as 9000 
+neighbor 2001:200:0:FFFE::2 next-hop-self
+neighbor 2001:200:0:FFFE::2 update-source Loopback 0
+
+neighbor 2001:200:0:FFFE::4 remote-as 9000 
+neighbor 2001:200:0:FFFE::4 next-hop-self
+neighbor 2001:200:0:FFFE::4 update-source Loopback 0
+
+network 2001:200:2000::/50
+network 2001:200::/50
+
+
+! Network L2 ipv6 (nao esta a fazer nada)
+conf t
+ipv6 prefix-list prefix-routes-L2-ipv6 permit 2100:200:200::/48
+ipv6 prefix-list prefix-routes-L2-ipv6 seq 10 permit 2100:210::/48
+route-map routes-L2-out-ipv6 permit 20
+match ipv6 address prefix-list prefix-routes-L2-ipv6
+set local-preference 300
+
+route-map rotasL2-out-ipv6 permit 20
+match ipv6 address prefix-list prefix-routes-L2-ipv6
+set local-preference 100
+end
+! End Network L2 ipv6
+
+conf t
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:200:0:FFFE::1 route-map rotasL2-out-ipv6 out
+!neighbor 2001:200:0:FFFE::2 route-map rotasL2-out-ipv6 out
+!neighbor 2001:420:2::1 route-map routes-L2-out-ipv6 in
+
+!Outside traffic preference
+conf t
+!ipv6 access-list ACL-PERMIT-REST-ipv6
+!seq 10 deny 2100:210::/48
+!seq 100 permit any
+!exit
+
+ipv6 prefix-list ACL-PERMIT-REST-ipv6 seq 10 deny 2100:210::/48 le 128
+ipv6 prefix-list ACL-PERMIT-REST-ipv6 seq 100 permit ::/0 le 128
+
+ipv6 prefix-list PL-L2-TRAFFIC-ipv6 seq 10 permit 2100:200:200::/48
+route-map RM-OUTSIDE-ROUTES-ipv6 permit 10
+match ipv6 address prefix-list PL-L2-TRAFFIC-ipv6
+set local-preference 300
+route-map RM-OUTSIDE-ROUTES-ipv6 permit 20
+match ipv6 address ACL-PERMIT-REST-ipv6
+set local-preference 100
+exit
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:2::1 route-map RM-OUTSIDE-ROUTES-ipv6 in
+end
+
+! Deny Default routes
+conf t
+ipv6 prefix-list ACL-default-routes-ipv6 seq 16 deny ::/0 
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:2::1 prefix-list ACL-default-routes-ipv6 out
+neighbor 2001:420:4::1 prefix-list ACL-default-routes-ipv6 out
+end
+
+! AS Privada IPV6
+conf t
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:2::1 remove-private-as
+neighbor 2001:420:4::1 remove-private-as
+! End AS Privada
+
+! Deny Sintra IPV6
+conf t
+ipv6 prefix-list sintra-route-deny-ipv6 seq 10 deny 2100:210::/48
+ipv6 prefix-list sintra-route-deny-ipv6 seq 100 permit ::/0 le 128
+router bgp 9000
+address-family ipv6 unicast
+neighbor 2001:420:2::1 prefix-list sintra-route-deny-ipv6 in
+end
+! End Deny Sintra
+
+! Route Maps - Non Transit
+conf t
+ip as-path access-list 1 permit ^$
+ip as-path access-list 1 permit _65300_ 
+route-map non-transit 
+match as-path 1 
+
+router bgp 9000
+address-family ipv4 unicast
+neighbor 4.20.20.5 route-map non-transit out 
+neighbor 4.20.20.13 route-map non-transit out 
+
+address-family ipv6 unicast
+neighbor 2001:420:4::1 route-map non-transit out
+neighbor 2001:420:2::1 route-map non-transit out
+
+end
+write

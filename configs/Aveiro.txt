@@ -1,0 +1,146 @@
+
+conf t
+ipv6 unicast-routing !ipv6 routing enabled
+mpls traffic-eng tunnels
+ip cef
+mpls ip
+
+int loopback0
+ip add 10.0.16.2 255.255.255.255
+ip ospf 1 area 0
+ipv6 enable
+ipv6 add 2001:200:0:FFFE::2/128
+ipv6 ospf 1 area 0
+no shut
+
+int f0/0
+ip add 10.0.0.2 255.255.240.0
+no shut
+ipv6 enable
+ipv6 add 2001:200::2/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+mpls traffic-eng tunnels
+!ip rsvp bandwidth 2048 2048
+ip rsvp bandwidth 4096 4096
+mpls ip
+
+int f0/1
+ip add 192.172.1.9 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:200:3000::1/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+
+int f1/0
+ip add 192.172.1.13 255.255.255.252
+no shut
+ipv6 enable
+ipv6 add 2001:200:4000::1/50
+ip ospf 1 area 0
+ipv6 ospf 1 area 0
+mpls traffic-eng tunnels
+!ip rsvp bandwidth 2048 2048
+ip rsvp bandwidth 4096 4096
+
+! MPLS VPN EmpA1
+conf t
+ip vrf VPN-1
+rd 9000:1
+route-target export 9000:1
+route-target import 9000:1
+int f0/1
+ip vrf forwarding VPN-1
+ip add 192.172.1.9 255.255.255.252
+!ip policy route-map ...
+no shut
+router bgp 9000
+address-family vpnv4
+neighbor 10.0.16.4 activate
+neighbor 10.0.16.4 send-community both
+exit
+address-family ipv4 vrf VPN-1
+redistribute connected
+redistribute static 
+!redistribute ospf 1 vrf VPN-1
+end
+
+conf t
+ip route 120.1.1.0 255.255.255.128 f0/1 192.172.1.10
+ip route 192.172.1.8 255.255.255.252 f0/1
+ip route vrf VPN-1 120.1.1.0 255.255.255.128 FastEthernet0/1  192.172.1.10
+! Nao ir por Lisboa
+no ip route vrf VPN-1 0.0.0.0 0.0.0.0 10.0.0.3 global
+no ip route vrf VPN-1 0.0.0.0 0.0.0.0 10.0.0.1 global
+router ospf 1
+redistribute static subnets
+
+! OSPF MPLS
+conf t
+router ospf 1
+mpls traffic-eng area 0
+mpls traffic-eng router-id Loopback 0
+end
+
+! BGP CONFIGS
+conf t
+router bgp 9000
+bgp router-id 10.10.10.2
+address-family ipv4 unicast
+
+neighbor 10.0.16.1 remote-as 9000
+neighbor 10.0.16.1 next-hop-self
+neighbor 10.0.16.1 update-source Loopback 0
+
+neighbor 10.0.16.3 remote-as 9000
+neighbor 10.0.16.3 next-hop-self
+neighbor 10.0.16.3 update-source Loopback 0
+
+neighbor 10.0.16.4 remote-as 9000
+neighbor 10.0.16.4 next-hop-self
+neighbor 10.0.16.4 update-source Loopback 0
+
+network 10.0.0.0 mask 255.255.240.0
+
+! IPv6
+conf t
+router bgp 9000
+address-family ipv6 unicast
+
+! Porto
+neighbor 2001:200::1 remote-as 9000
+neighbor 2001:200::1 activate
+
+!Lisboa
+neighbor 2001:200::3 remote-as 9000
+neighbor 2001:200::3 activate
+
+!Oeiras
+neighbor 2001:200:2000::2 remote-as 9000
+neighbor 2001:200:2000::2 activate
+
+network 2001:200::/50
+
+!--------------------------------------
+conf t
+router bgp 9000
+address-family ipv6 unicast
+
+neighbor 2001:200:0:FFFE::1 remote-as 9000 
+neighbor 2001:200:0:FFFE::1 next-hop-self
+neighbor 2001:200:0:FFFE::1 update-source Loopback 0
+
+neighbor 2001:200:0:FFFE::3 remote-as 9000 
+neighbor 2001:200:0:FFFE::3 next-hop-self
+neighbor 2001:200:0:FFFE::3 update-source Loopback 0
+
+neighbor 2001:200:0:FFFE::4 remote-as 9000 
+neighbor 2001:200:0:FFFE::4 next-hop-self
+neighbor 2001:200:0:FFFE::4 update-source Loopback 0
+
+network 2001:200::/50
+
+
+end
+write
