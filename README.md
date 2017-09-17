@@ -4,5 +4,5 @@
   Trabalho prático final realizado
   <a href="https://github.com/miguelfoliveira"> Miguel Oliveira </a>
   e
-  TIago Henriques
+  <a href="https://github.com/henriquestiagoo"> TIago Henriques </a>
 </p>
